@@ -103,7 +103,7 @@ stop() {
     [ "$STOPPED" -gt 0 ] && success $"vncserver shutdown" || \
 	failure $"vncserver shutdown"
     echo
-    [ "$STOPPED" -eq 0 ] && rm -f /var/lock/subsys/Xvnc
+    [ "$STOPPED" -gt 0 ] && rm -f /var/lock/subsys/Xvnc
     return "$RETVAL"
 }
 

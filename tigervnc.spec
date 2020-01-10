@@ -1,6 +1,6 @@
 Name:		tigervnc
 Version:	1.1.0
-Release:	16%{?dist}
+Release:	18%{?dist}
 Summary:	A TigerVNC remote display system
 
 Group:		User Interface/Desktops
@@ -65,6 +65,7 @@ Patch31:	tigervnc-inputreset.patch
 Patch32:	tigervnc-pointersync.patch
 Patch33:	tigervnc-java-build.patch
 Patch34:	tigervnc-negative-encoding.patch
+Patch35:	tigervnc-xserver-1.16-xserver-1.17.patch
 
 %description
 Virtual Network Computing (VNC) is a remote display system which
@@ -89,6 +90,7 @@ Requires:	mesa-dri-drivers, xkeyboard-config, xorg-x11-xkb-utils
 Requires:	perl
 Requires:	pixman >= 0.27.2
 Requires:	libX11 >= 1.6.0
+Requires:	libXfont
 
 # Check you don't reintroduce #498184 again
 Requires:	xorg-x11-fonts-misc
@@ -199,6 +201,9 @@ sed -i 's/AM_GNU_GETTEXT_VERSION.*/AM_GNU_GETTEXT_VERSION([0.17])/' configure.ac
 # Unknown pseudo-encodings (those with negative values) would cause
 # vncviewer to crash (bug #1121041).
 %patch34 -p1 -b .negative-encoding
+
+# source compatibility with xserver 1.16 and 1.17
+%patch35 -p1 -b .xserver-1.16-xserver-1.17
 
 %build
 export CFLAGS="$RPM_OPT_FLAGS"
@@ -356,6 +361,18 @@ fi
 %{_datadir}/vnc/classes/*
 
 %changelog
+* Thu Dec 03 2015 Adam Jackson <ajax@redhat.com> 1.1.0-18
+- Rebuild against xorg-x11-server-1.17.4-5 for GLX linkage fix
+  Resolves: bz#1246169
+
+* Thu Nov 12 2015 Jan Grulich <jgrulich@redhat.com> 1.1.0-17
+- Rebuild against xorg-x11-server-1.17
+  Resolves: bz#1248637
+- Added Requires: libXfont
+  Resolves: bz#1011315
+- Remove lock file after stopping vncserver service
+  Resolves: bz#1236559
+
 * Tue Jul 22 2014 Tim Waugh <twaugh@redhat.com> 1.1.0-16
 - Unknown pseudo-encodings (those with negative values) would cause
   vncviewer to crash (bug #1121041).

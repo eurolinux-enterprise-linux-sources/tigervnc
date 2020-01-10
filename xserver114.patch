@@ -1,15 +1,16 @@
-diff -up xorg-server-20130109/configure.ac.vnc xorg-server-20130109/configure.ac
---- xorg-server-20130109/configure.ac.vnc	2013-01-24 13:01:31.013267503 +0100
-+++ xorg-server-20130109/configure.ac	2013-01-24 13:08:43.283941751 +0100
-@@ -72,6 +72,7 @@ dnl forcing an entire recompile.x
+diff --git a/configure.ac b/configure.ac
+index fa15a2d..4d149f5 100644
+--- a/configure.ac
++++ b/configure.ac
+@@ -74,6 +74,7 @@ dnl forcing an entire recompile.x
  AC_CONFIG_HEADERS(include/version-config.h)
  
  AM_PROG_AS
 +AC_PROG_CXX
  AC_PROG_LN_S
- AC_LIBTOOL_WIN32_DLL
- AC_DISABLE_STATIC
-@@ -1573,6 +1574,10 @@ if test "x$XVFB" = xyes; then
+ LT_PREREQ([2.2])
+ LT_INIT([disable-static win32-dll])
+@@ -1797,6 +1798,10 @@ if test "x$XVFB" = xyes; then
  	AC_SUBST([XVFB_SYS_LIBS])
  fi
  
@@ -20,7 +21,7 @@ diff -up xorg-server-20130109/configure.ac.vnc xorg-server-20130109/configure.ac
  
  dnl Xnest DDX
  
-@@ -1608,6 +1613,8 @@ if test "x$XORG" = xauto; then
+@@ -1832,6 +1837,8 @@ if test "x$XORG" = xauto; then
  fi
  AC_MSG_RESULT([$XORG])
  
@@ -29,7 +30,7 @@ diff -up xorg-server-20130109/configure.ac.vnc xorg-server-20130109/configure.ac
  if test "x$XORG" = xyes; then
  	XORG_DDXINCS='-I$(top_srcdir)/hw/xfree86 -I$(top_srcdir)/hw/xfree86/include -I$(top_srcdir)/hw/xfree86/common'
  	XORG_OSINCS='-I$(top_srcdir)/hw/xfree86/os-support -I$(top_srcdir)/hw/xfree86/os-support/bus -I$(top_srcdir)/os'
-@@ -1826,7 +1833,6 @@ if test "x$XORG" = xyes; then
+@@ -2061,7 +2068,6 @@ if test "x$XORG" = xyes; then
  	AC_DEFINE(XORG_SERVER, 1, [Building Xorg server])
  	AC_DEFINE(XORGSERVER, 1, [Building Xorg server])
  	AC_DEFINE(XFree86Server, 1, [Building XFree86 server])
@@ -37,7 +38,7 @@ diff -up xorg-server-20130109/configure.ac.vnc xorg-server-20130109/configure.ac
  	AC_DEFINE(NEED_XF86_TYPES, 1, [Need XFree86 typedefs])
  	AC_DEFINE(NEED_XF86_PROTOTYPES, 1, [Need XFree86 helper functions])
  	AC_DEFINE(__XSERVERNAME__, "Xorg", [Name of X server])
-@@ -2291,6 +2297,7 @@ hw/dmx/Makefile
+@@ -2603,6 +2609,7 @@ hw/dmx/Makefile
  hw/dmx/man/Makefile
  hw/vfb/Makefile
  hw/vfb/man/Makefile
@@ -45,23 +46,25 @@ diff -up xorg-server-20130109/configure.ac.vnc xorg-server-20130109/configure.ac
  hw/xnest/Makefile
  hw/xnest/man/Makefile
  hw/xwin/Makefile
-diff -up xorg-server-20130109/hw/Makefile.am.vnc xorg-server-20130109/hw/Makefile.am
---- xorg-server-20130109/hw/Makefile.am.vnc	2013-01-10 06:06:16.000000000 +0100
-+++ xorg-server-20130109/hw/Makefile.am	2013-01-24 13:08:43.283941751 +0100
-@@ -33,7 +33,8 @@ SUBDIRS =			\
- 	$(XNEST_SUBDIRS)	\
+diff --git a/hw/Makefile.am b/hw/Makefile.am
+index 19895dc..b42fa6e 100644
+--- a/hw/Makefile.am
++++ b/hw/Makefile.am
+@@ -38,7 +38,8 @@ SUBDIRS =			\
  	$(DMX_SUBDIRS)		\
  	$(KDRIVE_SUBDIRS)	\
--	$(XQUARTZ_SUBDIRS)
-+	$(XQUARTZ_SUBDIRS)	\
+ 	$(XQUARTZ_SUBDIRS)	\
+-	$(XWAYLAND_SUBDIRS)
++	$(XWAYLAND_SUBDIRS)	\
 +	vnc
  
- DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive
+ DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive xwayland
  
-diff -up xorg-server-20130109/mi/miinitext.c.vnc xorg-server-20130109/mi/miinitext.c
---- xorg-server-20130109/mi/miinitext.c.vnc	2013-01-10 06:06:16.000000000 +0100
-+++ xorg-server-20130109/mi/miinitext.c	2013-01-24 13:08:43.283941751 +0100
-@@ -112,6 +112,10 @@ SOFTWARE.
+diff --git a/mi/miinitext.c b/mi/miinitext.c
+index 5872bf5..62c138d 100644
+--- a/mi/miinitext.c
++++ b/mi/miinitext.c
+@@ -111,6 +111,10 @@ SOFTWARE.
  #include "micmap.h"
  #include "globals.h"
  
@@ -72,7 +75,7 @@ diff -up xorg-server-20130109/mi/miinitext.c.vnc xorg-server-20130109/mi/miinite
  /* The following is only a small first step towards run-time
   * configurable extensions.
   */
-@@ -302,6 +306,9 @@ static ExtensionModule staticExtensions[
+@@ -303,6 +307,9 @@ static const ExtensionModule staticExtensions[] = {
  #ifdef XSELINUX
      {SELinuxExtensionInit, SELINUX_EXTENSION_NAME, &noSELinuxExtension},
  #endif
