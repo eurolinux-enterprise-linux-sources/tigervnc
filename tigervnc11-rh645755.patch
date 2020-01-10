@@ -1,0 +1,32 @@
+--- tigervnc-1.0.90-20110117svn4237/common/rfb/SSecurityVncAuth.cxx.rh645755	2011-01-17 14:11:03.321108326 +0100
++++ tigervnc-1.0.90-20110117svn4237/common/rfb/SSecurityVncAuth.cxx	2011-01-17 14:13:57.555429727 +0100
+@@ -31,6 +31,7 @@
+ #include <rfb/Exception.h>
+ #include <string.h>
+ #include <stdio.h>
++#include <errno.h>
+ extern "C" {
+ #include <rfb/d3des.h>
+ }
+@@ -119,7 +120,20 @@ char* VncAuthPasswdParameter::getVncAuth
+ 
+       vlog.debug("reading password file");
+       obfuscated.buf = new char[128];
+-      obfuscated.length = fread(obfuscated.buf, 1, 128, fp);
++      /* Retry on SIGALRM, no infinite loop */
++      int retries;
++      for (retries = 32; retries > 0; retries--) {
++        clearerr(fp);
++        errno = 0;
++        obfuscated.length = fread(obfuscated.buf, 1, 128, fp);
++        if (!ferror(fp) || errno != EINTR)
++          break;
++      }
++
++      if (retries == 0 && obfuscated.length == 0) {
++        vlog.error("reading password file '%s' failed",fname.buf);
++      }
++
+       fclose(fp);
+     } else {
+       vlog.info("%s parameter not set", getName());

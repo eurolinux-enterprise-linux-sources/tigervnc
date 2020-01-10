@@ -1,0 +1,23 @@
+diff -up tigervnc-1.1.0/unix/xserver/hw/vnc/Input.cc.dma tigervnc-1.1.0/unix/xserver/hw/vnc/Input.cc
+--- tigervnc-1.1.0/unix/xserver/hw/vnc/Input.cc.dma	2012-08-10 14:50:57.896908647 +1000
++++ tigervnc-1.1.0/unix/xserver/hw/vnc/Input.cc	2012-08-10 14:51:51.602560327 +1000
+@@ -162,6 +162,9 @@ void InputDevice::PointerButtonAction(in
+ 
+ 	initInputDevice();
+ 
++	/* Flush event queue to ensure we don't flood it */
++	mieqProcessInputEvents();
++
+ 	for (i = 0; i < BUTTONS; i++) {
+ 		if ((buttonMask ^ oldButtonMask) & (1 << i)) {
+ 			int action = (buttonMask & (1<<i)) ?
+@@ -217,6 +220,9 @@ void InputDevice::PointerMove(const rfb:
+ 	QueuePointerEvents(pointerDev, MotionNotify, 0, POINTER_ABSOLUTE, &mask);
+ #endif
+ 
++	/* Flush event queue to ensure we don't flood it */
++	mieqProcessInputEvents();
++
+ 	cursorPos = pos;
+ }
+ 

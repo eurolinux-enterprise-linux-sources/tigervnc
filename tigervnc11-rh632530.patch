@@ -1,0 +1,13 @@
+diff -up tigervnc-1.0.90-20110117svn4237/unix/vncserver.rh632530 tigervnc-1.0.90-20110117svn4237/unix/vncserver
+--- tigervnc-1.0.90-20110117svn4237/unix/vncserver.rh632530	2011-01-17 14:01:31.658045681 +0100
++++ tigervnc-1.0.90-20110117svn4237/unix/vncserver	2011-01-17 14:03:01.090089936 +0100
+@@ -55,6 +55,9 @@ $xauthorityFile = "$ENV{XAUTHORITY}" || 
+ 
+ $defaultXStartup
+     = ("#!/bin/sh\n\n".
++       "[ -r /etc/sysconfig/i18n ] && . /etc/sysconfig/i18n\n".
++       "export LANG\n".
++       "export SYSFONT\n".
+        "vncconfig -iconic &\n".
+        "unset SESSION_MANAGER\n".
+        "unset DBUS_SESSION_BUS_ADDRESS\n".
