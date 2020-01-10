@@ -1,0 +1,76 @@
+diff -up tigervnc-1.1.0/unix/vncviewer/vncviewer.man.manpage tigervnc-1.1.0/unix/vncviewer/vncviewer.man
+--- tigervnc-1.1.0/unix/vncviewer/vncviewer.man.manpage	2012-11-29 17:02:37.087681083 +0100
++++ tigervnc-1.1.0/unix/vncviewer/vncviewer.man	2012-11-29 17:14:04.785293565 +0100
+@@ -212,6 +212,34 @@ command is executed with the environment
+ host, the port number on the remote host, and the gateway machine
+ respectively.
+ 
++.TP
++\fB\-SecurityTypes\fR \fIsecurity-type\fR
++Comma-separated list of which security type(s) to use.  Types include
++VeNCrypt, X509Plain, TLSPlain, X509Vnc, TLSVnc, X509None, TLSNone,
++VncAuth, None.  The list must start with VeNCrypt for the X509 and TLS
++types.  For example, \%-SecurityTypes=VeNCrypt,TLSVnc
++
++Description of options:
++.RS
++.IP VeNCrypt
++enable X509 and TLS options
++.IP X509Plain
++X.509 encryption with Plaintext authentication
++.IP TLSPlain
++TLS encryption with Plaintext authentication
++.IP X509Vnc
++X.509 encryption with VNC password authentication
++.IP TLSVnc
++TLS encryption with VNC password authentication
++.IP X509None
++X.509 encryption with no authentication
++.IP TLSNone
++TLS encryption with no authentication
++.IP VNCAuth
++VNC password authencation (no encryption)
++.IP None
++No authentication, no encryption
++
+ .SH SEE ALSO
+ .BR Xvnc (1),
+ .BR vncpasswd (1),
+diff -up tigervnc-1.1.0/unix/xserver/hw/vnc/Xvnc.man.manpage tigervnc-1.1.0/unix/xserver/hw/vnc/Xvnc.man
+--- tigervnc-1.1.0/unix/xserver/hw/vnc/Xvnc.man.manpage	2011-08-09 23:16:36.000000000 +0200
++++ tigervnc-1.1.0/unix/xserver/hw/vnc/Xvnc.man	2012-11-29 17:17:14.037465741 +0100
+@@ -224,6 +224,34 @@ is a hexadecimal keysym. For example, to
+ .IP "" 10
+ RemapKeys=0x22<>0x40
+ 
++.TP
++\fB\-SecurityTypes\fR \fIsecurity-type\fR
++Comma-separated list of which security type(s) to use.  Types include
++VeNCrypt, X509Plain, TLSPlain, X509Vnc, TLSVnc, X509None, TLSNone,
++VncAuth, None.  The list must start with VeNCrypt for the X509 and TLS
++types.  For example, \%-SecurityTypes=VeNCrypt,TLSVnc
++
++Description of options:
++.RS
++.IP VeNCrypt
++enable X509 and TLS options
++.IP X509Plain
++X.509 encryption with Plain authentication
++.IP TLSPlain
++TLS encryption with Plain authentication
++.IP X509Vnc
++X.509 encryption with VNC password authentication
++.IP TLSVnc
++TLS encryption with VNC password authentication
++.IP X509None
++X.509 encryption with no authentication
++.IP TLSNone
++TLS encryption with no authentication
++.IP VNCAuth
++VNC password authencation (no encryption)
++.IP None
++No authentication, no encryption
++
+ .SH USAGE WITH INETD
+ By configuring the \fBinetd\fP(1) service appropriately, Xvnc can be launched
+ on demand when a connection comes in, rather than having to be started

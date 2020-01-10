@@ -1,0 +1,25 @@
+diff -up tigervnc-1.1.0/unix/xserver/hw/vnc/Input.cc.pointersync tigervnc-1.1.0/unix/xserver/hw/vnc/Input.cc
+--- tigervnc-1.1.0/unix/xserver/hw/vnc/Input.cc.pointersync	2014-07-15 13:30:33.362672763 +0100
++++ tigervnc-1.1.0/unix/xserver/hw/vnc/Input.cc	2014-07-15 13:31:35.281989633 +0100
+@@ -1,5 +1,5 @@
+ /* Copyright (C) 2009 TightVNC Team
+- * Copyright (C) 2009 Red Hat, Inc.
++ * Copyright (C) 2009, 2014 Red Hat, Inc.
+  *
+  * This is free software; you can redistribute it and/or modify
+  * it under the terms of the GNU General Public License as published by
+@@ -235,6 +235,14 @@ void InputDevice::PointerMove(const rfb:
+ 
+ const rfb::Point &InputDevice::getPointerPos(void)
+ {
++	if (pointerDev) {
++		int x, y;
++
++		GetSpritePosition (pointerDev, &x, &y);
++		cursorPos.x = x;
++		cursorPos.y = y;
++	}
++
+ 	return cursorPos;
+ }
+ 

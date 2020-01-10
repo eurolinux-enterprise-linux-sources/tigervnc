@@ -1,0 +1,103 @@
+diff -up tigervnc-1.1.0/unix/xserver/hw/vnc/Input.cc.numlock tigervnc-1.1.0/unix/xserver/hw/vnc/Input.cc
+--- tigervnc-1.1.0/unix/xserver/hw/vnc/Input.cc.numlock	2014-05-27 16:50:48.315576000 +0100
++++ tigervnc-1.1.0/unix/xserver/hw/vnc/Input.cc	2014-05-27 16:52:53.435203536 +0100
+@@ -72,6 +72,8 @@ using namespace rfb;
+ 
+ static LogWriter vlog("Input");
+ 
++rfb::BoolParameter avoidShiftNumLock("AvoidShiftNumLock", "Avoid fake Shift presses for keys affected by NumLock.", true);
++
+ #define BUTTONS 5
+ static int pointerProc(DeviceIntPtr pDevice, int onoff);
+ 
+@@ -743,6 +745,53 @@ ModeSwitchFound:
+ 	kc = KeysymToKeycode(keymap, keysym, &col);
+ 
+ 	/*
++	 * X11 generally lets shift toggle the keys on the numeric pad
++	 * the same way NumLock does. This is however not the case on
++	 * other systems like Windows. As a result, some applications
++	 * get confused when we do a fake shift to get the same effect
++	 * that having NumLock active would produce.
++	 *
++	 * Until we have proper NumLock synchronisation (so we can
++	 * avoid faking shift), we try to avoid the fake shifts if we
++	 * can use an alternative keysym.
++	 */
++	if ((col & 1) &&
++	    avoidShiftNumLock && isAffectedByNumLock(keymap, kc)) {
++	    	KeyCode keycode2;
++	    	int col2 = 0;
++
++		vlog.debug("Finding alternative to keysym 0x%x to avoid fake shift for numpad", keysym);
++
++		for (i = 0;i < sizeof(altKeysym)/sizeof(altKeysym[0]);i++) {
++			KeySym altsym;
++
++			if (altKeysym[i].a == keysym)
++				altsym = altKeysym[i].b;
++			else if (altKeysym[i].b == keysym)
++				altsym = altKeysym[i].a;
++			else
++				continue;
++
++			keycode2 = KeysymToKeycode(keymap, altsym, &col2);
++			if (keycode2 == 0)
++				continue;
++
++			if ((col2 & 1) &&
++			    isAffectedByNumLock(keymap, keycode2))
++				continue;
++
++			break;
++		}
++
++		if (i == sizeof(altKeysym)/sizeof(altKeysym[0]))
++			vlog.debug("No alternative keysym found");
++		else {
++			kc = keycode2;
++			col = col2;
++		}
++	}
++
++	/*
+ 	 * Sort out the "shifted Tab" mess.  If we are sent a shifted Tab,
+ 	 * generate a local shifted Tab regardless of what the "shifted Tab"
+ 	 * keysym is on the local keyboard (it might be Tab, ISO_Left_Tab or
+@@ -886,6 +935,24 @@ press:
+ 	mieqProcessInputEvents();
+ }
+ 
++bool InputDevice::isAffectedByNumLock(KeySymsPtr keymap, KeyCode keycode)
++{
++	int i, per;
++	KeySym *syms;
++
++	per = keymap->mapWidth;
++	syms = &keymap->map[(keycode - keymap->minKeyCode) * per];
++
++	for (i = 0;i < per;i++) {
++		if (IsKeypadKey(syms[i]))
++			return true;
++		if (IsPrivateKeypadKey(syms[i]))
++			return true;
++	}
++
++	return false;
++}
++
+ static KeySym KeyCodetoKeySym(KeySymsPtr keymap, int keycode, int col)
+ {
+ 	int per = keymap->mapWidth;
+diff -up tigervnc-1.1.0/unix/xserver/hw/vnc/Input.h.numlock tigervnc-1.1.0/unix/xserver/hw/vnc/Input.h
+--- tigervnc-1.1.0/unix/xserver/hw/vnc/Input.h.numlock	2011-08-09 22:16:36.000000000 +0100
++++ tigervnc-1.1.0/unix/xserver/hw/vnc/Input.h	2014-05-27 16:53:07.811275641 +0100
+@@ -68,6 +68,8 @@ private:
+ 
+ 	void keyEvent(rdr::U32 keysym, bool down);
+ 
++	bool isAffectedByNumLock(KeySymsPtr keymap, KeyCode keycode);
++
+ 	rfb::VNCServerST *server;
+ 	DeviceIntPtr keyboardDev;
+ 	DeviceIntPtr pointerDev;

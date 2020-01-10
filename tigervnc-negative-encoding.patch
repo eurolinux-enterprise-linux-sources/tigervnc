@@ -1,0 +1,30 @@
+diff -up tigervnc-1.1.0/common/rfb/CMsgReader.cxx.negative-encoding tigervnc-1.1.0/common/rfb/CMsgReader.cxx
+--- tigervnc-1.1.0/common/rfb/CMsgReader.cxx.negative-encoding	2014-07-18 17:56:42.692578511 +0100
++++ tigervnc-1.1.0/common/rfb/CMsgReader.cxx	2014-07-18 17:57:13.728751331 +0100
+@@ -100,7 +100,7 @@ void CMsgReader::readRect(const Rect& r,
+     readCopyRect(r);
+   } else {
+ 
+-    if (encoding > encodingMax) {
++    if (!Decoder::supported(encoding)) {
+       fprintf(stderr, "Unknown rect encoding %d\n", encoding);
+       throw Exception("Unknown rect encoding");
+     }
+diff -up tigervnc-1.1.0/common/rfb/Decoder.cxx.negative-encoding tigervnc-1.1.0/common/rfb/Decoder.cxx
+--- tigervnc-1.1.0/common/rfb/Decoder.cxx.negative-encoding	2014-07-18 17:57:21.642795399 +0100
++++ tigervnc-1.1.0/common/rfb/Decoder.cxx	2014-07-18 17:57:54.128976293 +0100
+@@ -34,12 +34,12 @@ DecoderCreateFnType Decoder::createFns[e
+ 
+ bool Decoder::supported(int encoding)
+ {
+-  return encoding <= encodingMax && createFns[encoding];
++  return encoding >= 0 && encoding <= encodingMax && createFns[encoding];
+ }
+ 
+ Decoder* Decoder::createDecoder(int encoding, CMsgReader* reader)
+ {
+-  if (encoding <= encodingMax && createFns[encoding])
++  if (supported(encoding))
+     return (*createFns[encoding])(reader);
+   return 0;
+ }

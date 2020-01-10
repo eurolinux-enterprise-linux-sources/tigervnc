@@ -1,6 +1,6 @@
 Name:		tigervnc
 Version:	1.1.0
-Release:	8%{?dist}
+Release:	16%{?dist}
 Summary:	A TigerVNC remote display system
 
 Group:		User Interface/Desktops
@@ -11,7 +11,7 @@ Source0:	%{name}-%{version}.tar.gz
 Source1:	vncserver.init
 Source2:	vncserver.sysconfig
 Source6:	vncviewer.desktop
-Source7:	xserver110-4.patch
+Source7:	xserver114.patch
 BuildRoot:	%{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:	libX11-devel, automake, autoconf, libtool, gettext, cvs
@@ -22,7 +22,7 @@ BuildRequires:	libxkbfile-devel, openssl-devel, libpciaccess-devel
 BuildRequires:	mesa-libGL-devel, libXinerama-devel, ImageMagick
 BuildRequires:  freetype-devel, libXdmcp-devel, pam-devel
 BuildRequires:	desktop-file-utils, java-1.5.0-gcj-devel
-BuildRequires:	gnutls-devel
+BuildRequires:	gnutls-devel, libjpeg-devel
 
 %ifarch %ix86 x86_64
 BuildRequires: nasm
@@ -53,6 +53,18 @@ Patch19:        tigervnc11-xorg113.patch
 Patch20:	tigervnc11-rh843714.patch
 Patch21:	tigervnc11-rh950708.patch
 Patch22:	tigervnc-es-altgr.patch
+Patch23:	tigervnc-CVE-2014-0011.patch
+Patch24:	tigervnc-extinit.patch
+Patch25:	tigervnc-inetd-nowait.patch
+Patch26:	tigervnc-window-border.patch
+Patch27:	tigervnc-xserver-1.14.patch
+Patch28:	tigervnc-1.3.0-xserver-1.15.patch
+Patch29:	tigervnc11-manpage.patch
+Patch30:	tigervnc-numlock.patch
+Patch31:	tigervnc-inputreset.patch
+Patch32:	tigervnc-pointersync.patch
+Patch33:	tigervnc-java-build.patch
+Patch34:	tigervnc-negative-encoding.patch
 
 %description
 Virtual Network Computing (VNC) is a remote display system which
@@ -75,6 +87,8 @@ Requires(preun):initscripts
 Requires(postun):initscripts
 Requires:	mesa-dri-drivers, xkeyboard-config, xorg-x11-xkb-utils
 Requires:	perl
+Requires:	pixman >= 0.27.2
+Requires:	libX11 >= 1.6.0
 
 # Check you don't reintroduce #498184 again
 Requires:	xorg-x11-fonts-misc
@@ -147,6 +161,45 @@ popd
 # Use newer gettext
 sed -i 's/AM_GNU_GETTEXT_VERSION.*/AM_GNU_GETTEXT_VERSION([0.17])/' configure.ac
 
+# Fixed heap-based buffer overflow (CVE-2014-0011, bug #1050928).
+%patch23 -p1 -b .CVE-2014-0011
+
+# Avoid initializing the vnc extension twice (bug #1004093).
+%patch24 -p1 -b .extinit
+
+# Applied Debian patch to fix busy loop when run from inetd in nowait
+# mode (bug #958988).
+%patch25 -p1 -b .inetd-nowait
+
+# Backported upstream fix for window border redrawing (bug #975778).
+%patch26 -p1 -b .window-border
+
+# Fixes for xserver 1.14
+%patch27 -p1 -b .xserver-1.14
+
+# source compatibility with xserver 1.15
+%patch28 -p1 -b .xserver-1.15
+
+# Describe -SecurityTypes option in man pages (bug #882952).
+%patch29 -p1 -b .manpage
+
+# Backported Numlock handling fix (bug #1031506).
+%patch30 -p1 -b .numlock
+
+# Input reset fixes from upstream (bug #1116956).
+%patch31 -p1 -b .inputreset
+
+# Keep pointer in sync when using module (bug #840972).
+%patch32 -p1 -b .pointersync
+
+# Set source as well as target when building java as some JDKs require
+# this (bug #1078427).
+%patch33 -p1 -b .java-build
+
+# Unknown pseudo-encodings (those with negative values) would cause
+# vncviewer to crash (bug #1121041).
+%patch34 -p1 -b .negative-encoding
+
 %build
 export CFLAGS="$RPM_OPT_FLAGS"
 export CXXFLAGS="$CFLAGS"
@@ -154,8 +207,10 @@ export CXXFLAGS="$CFLAGS"
 autoreconf -fiv
 %configure \
 	--disable-static \
-	--disable-pam
+	--disable-pam \
+	--with-system-jpeg
 
+rm -rf common/jpeg common/zlib
 make %{?_smp_mflags}
 
 pushd unix/xserver
@@ -171,6 +226,8 @@ autoreconf -fiv
 	--enable-install-libxf86config \
 	--disable-dri2 \
 	--enable-glx \
+	--disable-wayland \
+	--disable-present \
 	--disable-config-dbus \
 	--disable-config-hal \
 	--with-dri-driver-path=%{_libdir}/dri \
@@ -299,6 +356,44 @@ fi
 %{_datadir}/vnc/classes/*
 
 %changelog
+* Tue Jul 22 2014 Tim Waugh <twaugh@redhat.com> 1.1.0-16
+- Unknown pseudo-encodings (those with negative values) would cause
+  vncviewer to crash (bug #1121041).
+- Set source as well as target when building java as some JDKs require
+  this (bug #1078427).
+
+* Mon Jul 14 2014 Tim Waugh <twaugh@redhat.com> 1.1.0-15
+- Input reset fixes from upstream (bug #1116956).
+
+* Tue Jun 10 2014 Tim Waugh <twaugh@redhat.com> 1.1.0-14
+- Backported Numlock handling fix (bug #1031506).
+
+* Tue Jun  3 2014 Tim Waugh <twaugh@redhat.com> 1.1.0-13
+- Added versioned pixman and libX11 dependencies (bug #917717,
+  bug #991285).
+- Link against system-wide libjpeg-turbo (bug #956779).
+- Describe -SecurityTypes option in man pages (bug #882952).
+- Fixed kbase URL in sysconfig file (bug #728981).
+
+* Thu May 22 2014 Tim Waugh <twaugh@redhat.com> 1.1.0-12
+- Keep pointer in sync when using module (bug #840972).
+
+* Wed May 21 2014 Tim Waugh <twaugh@redhat.com> 1.1.0-11
+- Rebuild against new xorg-x11-server (bug #1078427).
+
+* Tue Apr 15 2014 Tim Waugh <twaugh@redhat.com> 1.1.0-10
+- Backported upstream fix for window border redrawing (bug #975778).
+
+* Thu Apr  3 2014 Tim Waugh <twaugh@redhat.com> 1.1.0-9
+- Init script fixes:
+  - Attempt to start all configured servers (bug #562669, bug #768405).
+  - Avoid problems when user's configured shell is not bash (bug #949522).
+- Applied Debian patch to fix busy loop when run from inetd in nowait
+  mode (bug #958988, bug #920373).
+- Avoid initializing the vnc extension twice (bug #1004093).
+- Use exceptions instead of asserts for ZRLE decoding boundary checks
+  (bug #1078508).
+
 * Mon Jan 27 2014 Tim Waugh <twaugh@redhat.com> 1.1.0-8
 - Fixed GLX initialisation (bug #1044244).
 

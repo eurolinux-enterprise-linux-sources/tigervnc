@@ -1,0 +1,13 @@
+diff -up tigervnc-1.1.0/unix/xserver/hw/vnc/xvnc.cc.xserver-1.14 tigervnc-1.1.0/unix/xserver/hw/vnc/xvnc.cc
+--- tigervnc-1.1.0/unix/xserver/hw/vnc/xvnc.cc.xserver-1.14	2014-05-21 14:36:41.136883041 +0100
++++ tigervnc-1.1.0/unix/xserver/hw/vnc/xvnc.cc	2014-05-21 14:36:53.628932614 +0100
+@@ -54,7 +54,9 @@ extern "C" {
+ #include "servermd.h"
+ #include "fb.h"
+ #include "mi.h"
++#if XORG < 114
+ #include "mibstore.h"
++#endif
+ #include "colormapst.h"
+ #include "gcstruct.h"
+ #include "input.h"
