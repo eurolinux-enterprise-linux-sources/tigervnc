@@ -1,0 +1,25 @@
+diff -up tigervnc-1.1.0/unix/xserver/hw/vnc/Input.cc.es-altgr tigervnc-1.1.0/unix/xserver/hw/vnc/Input.cc
+--- tigervnc-1.1.0/unix/xserver/hw/vnc/Input.cc.es-altgr	2014-01-16 09:25:31.181855991 +0000
++++ tigervnc-1.1.0/unix/xserver/hw/vnc/Input.cc	2014-01-16 09:26:40.534048179 +0000
+@@ -931,6 +931,7 @@ static KeySym KeyCodetoKeySym(KeySymsPtr
+ static KeyCode KeysymToKeycode(KeySymsPtr keymap, KeySym ks, int* col)
+ {
+ 	int i, j;
++	int mapWidth;
+ 
+ 	j = *col;
+ 	for (i = keymap->minKeyCode; i <= keymap->maxKeyCode; i++) {
+@@ -938,7 +939,12 @@ static KeyCode KeysymToKeycode(KeySymsPt
+ 			return i;
+ 	}
+ 
+-	for (j = 0; j < keymap->mapWidth; j++) {
++	/* Only the first four columns have well-defined meaning */
++	mapWidth = keymap->mapWidth;
++	if (mapWidth > 4)
++		mapWidth = 4;
++
++	for (j = 0; j < mapWidth; j++) {
+ 		for (i = keymap->minKeyCode; i <= keymap->maxKeyCode; i++) {
+ 			if (KeyCodetoKeySym(keymap, i, j) == ks) {
+ 				*col = j;

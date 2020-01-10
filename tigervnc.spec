@@ -1,6 +1,6 @@
 Name:		tigervnc
 Version:	1.1.0
-Release:	5%{?dist}.1
+Release:	8%{?dist}
 Summary:	A TigerVNC remote display system
 
 Group:		User Interface/Desktops
@@ -52,6 +52,7 @@ Patch17:        tigervnc11-xorg112.patch
 Patch19:        tigervnc11-xorg113.patch
 Patch20:	tigervnc11-rh843714.patch
 Patch21:	tigervnc11-rh950708.patch
+Patch22:	tigervnc-es-altgr.patch
 
 %description
 Virtual Network Computing (VNC) is a remote display system which
@@ -139,6 +140,9 @@ popd
 %patch15 -p1 -b .gethomedir
 %patch20 -p0 -b .rh843714
 %patch21 -p1 -b .rh950708
+
+# Keyboard handling fix for some keyboard layouts (bug #1029923).
+%patch22 -p1 -b .es-altgr
 
 # Use newer gettext
 sed -i 's/AM_GNU_GETTEXT_VERSION.*/AM_GNU_GETTEXT_VERSION([0.17])/' configure.ac
@@ -295,7 +299,13 @@ fi
 %{_datadir}/vnc/classes/*
 
 %changelog
-* Thu Apr 25 2013 Adam Tkac <atkac redhat com> 1.1.0-5.1
+* Mon Jan 27 2014 Tim Waugh <twaugh@redhat.com> 1.1.0-8
+- Fixed GLX initialisation (bug #1044244).
+
+* Thu Jan 16 2014 Tim Waugh <twaugh@redhat.com> 1.1.0-7
+- Keyboard handling fix for some keyboard layouts (bug #1029923).
+
+* Thu Apr 25 2013 Adam Tkac <atkac redhat com> 1.1.0-6
 - reenable GLX extension (#950708)
 
 * Mon Nov 26 2012 Adam Tkac <atkac redhat com> 1.1.0-5
