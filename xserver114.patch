@@ -4,7 +4,7 @@ index fa15a2d..4d149f5 100644
 +++ b/configure.ac
 @@ -74,6 +74,7 @@ dnl forcing an entire recompile.x
  AC_CONFIG_HEADERS(include/version-config.h)
- 
+
  AM_PROG_AS
 +AC_PROG_CXX
  AC_PROG_LN_S
@@ -13,18 +13,18 @@ index fa15a2d..4d149f5 100644
 @@ -1797,6 +1798,10 @@ if test "x$XVFB" = xyes; then
  	AC_SUBST([XVFB_SYS_LIBS])
  fi
- 
+
 +dnl Xvnc DDX
 +AC_SUBST([XVNC_CPPFLAGS], ["-DHAVE_DIX_CONFIG_H $XSERVER_CFLAGS"])
-+AC_SUBST([XVNC_LIBS], ["$FB_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $RECORD_LIB $GLX_LIBS $RANDR_LIB $RENDER_LIB $DAMAGE_LIB $MIEXT_SYNC_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $MAIN_LIB"])
++AC_SUBST([XVNC_LIBS], ["$FB_LIB $FIXES_LIB $XEXT_LIB $CONFIG_LIB $DBE_LIB $RECORD_LIB $GLX_LIBS $RANDR_LIB $RENDER_LIB $DAMAGE_LIB $DRI3_LIB $PRESENT_LIB $MIEXT_SYNC_LIB $MIEXT_DAMAGE_LIB $MIEXT_SHADOW_LIB $XI_LIB $XKB_LIB $XKB_STUB_LIB $COMPOSITE_LIB $MAIN_LIB"])
 +AC_SUBST([XVNC_SYS_LIBS], ["$GLX_SYS_LIBS"])
- 
+
  dnl Xnest DDX
- 
+
 @@ -1832,6 +1837,8 @@ if test "x$XORG" = xauto; then
  fi
  AC_MSG_RESULT([$XORG])
- 
+
 +AC_DEFINE_UNQUOTED(XORG_VERSION_CURRENT, [$VENDOR_RELEASE], [Current Xorg version])
 +
  if test "x$XORG" = xyes; then
@@ -57,9 +57,9 @@ index 19895dc..b42fa6e 100644
 -	$(XWAYLAND_SUBDIRS)
 +	$(XWAYLAND_SUBDIRS)	\
 +	vnc
- 
+
  DIST_SUBDIRS = dmx xfree86 vfb xnest xwin xquartz kdrive xwayland
- 
+
 diff --git a/mi/miinitext.c b/mi/miinitext.c
 index 5872bf5..62c138d 100644
 --- a/mi/miinitext.c
@@ -67,7 +67,7 @@ index 5872bf5..62c138d 100644
 @@ -111,6 +111,10 @@ SOFTWARE.
  #include "micmap.h"
  #include "globals.h"
- 
+
 +#ifdef TIGERVNC
 +extern void vncExtensionInit(INITARGS);
 +#endif
@@ -83,5 +83,5 @@ index 5872bf5..62c138d 100644
 +    {vncExtensionInit, "VNC-EXTENSION", NULL},
 +#endif
  };
- 
+
  static ExtensionModule *ExtensionModuleList = NULL;

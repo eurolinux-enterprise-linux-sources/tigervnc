@@ -1,6 +1,6 @@
 Name:		tigervnc
 Version:	1.1.0
-Release:	18%{?dist}
+Release:	24%{?dist}
 Summary:	A TigerVNC remote display system
 
 Group:		User Interface/Desktops
@@ -18,19 +18,19 @@ BuildRequires:	libX11-devel, automake, autoconf, libtool, gettext, cvs
 BuildRequires:	libXext-devel, xorg-x11-server-source >= 1.10.4, libXi-devel
 BuildRequires:	xorg-x11-xtrans-devel, xorg-x11-util-macros, libXtst-devel
 BuildRequires:	libdrm-devel, libXt-devel, pixman-devel libXfont-devel
-BuildRequires:	libxkbfile-devel, openssl-devel, libpciaccess-devel
-BuildRequires:	mesa-libGL-devel, libXinerama-devel, ImageMagick
-BuildRequires:  freetype-devel, libXdmcp-devel, pam-devel
+BuildRequires:	libxkbfile-devel, openssl-devel, libpciaccess-devel,
+BuildRequires:	mesa-libGL-devel, libXinerama-devel, ImageMagick,
+BuildRequires:  freetype-devel, libXdmcp-devel, libxshmfence-devel
 BuildRequires:	desktop-file-utils, java-1.5.0-gcj-devel
-BuildRequires:	gnutls-devel, libjpeg-devel
+BuildRequires:	gnutls-devel, libjpeg-devel, pam-devel
 
 %ifarch %ix86 x86_64
 BuildRequires: nasm
 %endif
 
 
-Requires(post):	coreutils	
-Requires(postun):coreutils	
+Requires(post):	coreutils
+Requires(postun):coreutils
 
 Provides:	vnc = 4.1.3-2, vnc-libs = 4.1.3-2
 Obsoletes:	vnc < 4.1.3-2, vnc-libs < 4.1.3-2
@@ -47,9 +47,9 @@ Patch13:	tigervnc11-rh690245.patch
 Patch14:	tigervnc11-ldnow.patch
 Patch15:	tigervnc11-gethomedir.patch
 
-Patch16:        tigervnc11-xorg111.patch
-Patch17:        tigervnc11-xorg112.patch
-Patch19:        tigervnc11-xorg113.patch
+Patch16:	tigervnc11-xorg111.patch
+Patch17:	tigervnc11-xorg112.patch
+Patch19:	tigervnc11-xorg113.patch
 Patch20:	tigervnc11-rh843714.patch
 Patch21:	tigervnc11-rh950708.patch
 Patch22:	tigervnc-es-altgr.patch
@@ -66,6 +66,8 @@ Patch32:	tigervnc-pointersync.patch
 Patch33:	tigervnc-java-build.patch
 Patch34:	tigervnc-negative-encoding.patch
 Patch35:	tigervnc-xserver-1.16-xserver-1.17.patch
+Patch36:	tigervnc-buffer-overflow-in-fillRect.patch
+Patch37:	tigervnc-proper-global-init-deinit-of-gnutls.patch
 
 %description
 Virtual Network Computing (VNC) is a remote display system which
@@ -205,6 +207,12 @@ sed -i 's/AM_GNU_GETTEXT_VERSION.*/AM_GNU_GETTEXT_VERSION([0.17])/' configure.ac
 # source compatibility with xserver 1.16 and 1.17
 %patch35 -p1 -b .xserver-1.16-xserver-1.17
 
+# fix buffer overflow in FullRect::fillRect
+%patch36 -p1 -b .buffer-overflow-in-fillRect
+
+# proper global init/deinit of GnuTLS
+%patch37 -p1 -b .proper-global-init-deinit-of-gnutls
+
 %build
 export CFLAGS="$RPM_OPT_FLAGS"
 export CXXFLAGS="$CFLAGS"
@@ -229,8 +237,7 @@ autoreconf -fiv
 	--with-fontdir=%{_datadir}/X11/fonts \
 	--with-xkb-output=%{_localstatedir}/lib/xkb \
 	--enable-install-libxf86config \
-	--disable-dri2 \
-	--enable-glx \
+	--enable-glx --disable-dri --enable-dri2 --enable-dri3 \
 	--disable-wayland \
 	--disable-present \
 	--disable-config-dbus \
@@ -238,6 +245,7 @@ autoreconf -fiv
 	--with-dri-driver-path=%{_libdir}/dri \
 	--without-dtrace --disable-unut-tests \
 	--disable-docs --disable-devel-docs \
+	--enable-listen-tcp \
 
 make V=1 %{?_smp_mflags}
 popd
@@ -361,6 +369,31 @@ fi
 %{_datadir}/vnc/classes/*
 
 %changelog
+* Fri Feb 03 2017 Jan Grulich <jgrulich@redhat.com> 1.1.0-24
+- Proper global init/deinit of GnuTLS
+  Resolves: bz#1418946
+
+* Fri Jan 27 2017 Jan Grulich <jgrulich@redhat.com> 1.1.0-23
+- Fix buffer overflow in FullFramePixelBuffer::fillRect
+  Resolves: bz#1416289
+
+* Wed Jan 25 2017 Jan Grulich <jgrulich@redhat.com> 1.1.0-22
+- Fix buffer overflow in FullFramePixelBuffer::fillRect
+  Resolves: bz#1416289
+
+* Tue Nov 29 2016 Jan Grulich <jgrulich@redhat.com> 1.1.0-21
+- Enable DRI2 and DRI3
+  Resolves: bz#1323065
+
+* Tue Nov 01 2016 Jan Grulich <jgrulich@redhat.com> 1.1.0-20
+- Rebuild against fixed xorg-x11-server to avoid automatical disconnects
+  when initiazed from xinetd
+  Resolves: bz#1390458
+
+* Wed Sep 28 2016 Jan Grulich <jgrulich@redhat.com> 1.1.0-19
+- Restore default behaviour to listen on TCP
+  Resolves: bz#1378922
+
 * Thu Dec 03 2015 Adam Jackson <ajax@redhat.com> 1.1.0-18
 - Rebuild against xorg-x11-server-1.17.4-5 for GLX linkage fix
   Resolves: bz#1246169
