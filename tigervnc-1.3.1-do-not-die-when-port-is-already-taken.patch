@@ -1,0 +1,14 @@
+diff --git a/unix/vncserver b/unix/vncserver
+index a6c890f..687ef72 100755
+--- a/unix/vncserver
++++ b/unix/vncserver
+@@ -208,7 +208,8 @@ if ((@ARGV > 0) && ($ARGV[0] =~ /^:(\d+)$/)) {
+     $displayNumber = $1;
+     shift(@ARGV);
+     if (!&CheckDisplayNumber($displayNumber)) {
+-	die "A VNC server is already running as :$displayNumber\n";
++        warn "A VNC server is already running as :$displayNumber\n";
++        $displayNumber = &GetDisplayNumber();
+     }
+ } elsif ((@ARGV > 0) && ($ARGV[0] !~ /^-/) && ($ARGV[0] !~ /^\+/)) {
+     &Usage();
