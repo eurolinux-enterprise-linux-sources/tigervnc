@@ -1,6 +1,6 @@
 Name:           tigervnc
 Version:        1.8.0
-Release:        1%{?dist}
+Release:        13%{?dist}
 Summary:        A TigerVNC remote display system
 
 Group:          User Interface/Desktops
@@ -20,7 +20,7 @@ BuildRequires:  libXext-devel, xorg-x11-server-source, libXi-devel, libxshmfence
 BuildRequires:  xorg-x11-xtrans-devel, xorg-x11-util-macros, libXtst-devel
 BuildRequires:  libdrm-devel, libXt-devel, pixman-devel libXfont-devel
 BuildRequires:  libxkbfile-devel, openssl-devel, libpciaccess-devel
-BuildRequires:  mesa-libGL-devel, libXinerama-devel, ImageMagick
+BuildRequires:  mesa-libGL-devel, libXinerama-devel
 BuildRequires:  freetype-devel, libXdmcp-devel
 BuildRequires:  desktop-file-utils, java-devel, jpackage-utils
 BuildRequires:  libjpeg-turbo-devel, gnutls-devel, pam-devel
@@ -53,9 +53,18 @@ Patch4:        tigervnc-cursor.patch
 Patch6:        tigervnc-xstartup.patch
 Patch7:        tigervnc-1.3.1-CVE-2014-8240.patch
 Patch8:        tigervnc-1.3.1-do-not-die-when-port-is-already-taken.patch
+Patch9:        tigervnc-let-user-know-about-not-using-view-only-password.patch
+Patch10:       tigervnc-working-tls-on-fips-systems.patch
+Patch11:       tigervnc-broken-scrolling.patch
+Patch12:       tigervnc-kill-session-after-logout.patch
+Patch13:       tigervnc-support-xorg120.patch
+Patch14:       tigervnc-ignore-fake-focus-events-from-xgrabkeyboard.patch
+Patch15:       tigervnc-use-current-server-time-for-ungrab.patch
+Patch16:       tigervnc-check-endianness-when-constructing-platformpixelbuffer.patch
+Patch17:       tigervnc-xvnc-update-manpage.patch
 
 # This is tigervnc-%{version}/unix/xserver116.patch rebased on the latest xorg
-Patch100:       tigervnc-xserver119.patch
+Patch100:       tigervnc-xserver120.patch
 # 1326867 - [RHEL7.3] GLX applications in an Xvnc session fails to start
 Patch101:       0001-rpath-hack.patch
 
@@ -157,7 +166,7 @@ pushd unix/xserver
 for all in `find . -type f -perm -001`; do
         chmod -x "$all"
 done
-%patch100 -p1 -b .xserver119
+%patch100 -p1 -b .xserver120
 %patch101 -p1 -b .rpath
 popd
 
@@ -178,6 +187,28 @@ popd
 
 # Bug 1322155 - Xorg socket conflict for VNC port 5901
 %patch8 -p1 -b .do-not-die-when-port-is-already-taken
+
+# Bug 1447555 - view-only accepts enter, unclear whether default password is generated or not
+%patch9 -p1 -b .let-user-know-about-not-using-view-only-password
+
+# Bug 1492107 - VNC cannot be used when FIPS is enabled because DH_BITS is too low
+%patch10 -p1 -b .working-tls-on-fips-systems
+
+# Bug 1499018 - bump scrolling is broken in tigervnc 1.8.0
+%patch11 -p1 -b .broken-scrolling
+
+# Bug 1259757 - unable to log out from vnc session
+%patch12 -p1 -b .kill-session-after-logout
+
+%patch13 -p1 -b .support-xorg120
+
+%patch14 -p1 -b .ignore-fake-focus-events-from-xgrabkeyboard
+
+%patch15 -p1 -b .use-current-server-time-for-ungrab
+
+%patch16 -p1 -b .check-endianness-when-constructing-platformpixelbuffer
+
+%patch17 -p1 -b .xvnc-update-manpage
 
 %build
 %ifarch sparcv9 sparc64 s390 s390x
@@ -200,7 +231,7 @@ autoreconf -fiv
         --with-fontdir=%{_datadir}/X11/fonts \
         --with-xkb-output=%{_localstatedir}/lib/xkb \
         --enable-install-libxf86config \
-        --enable-glx --disable-dri --enable-dri2 --enable-dri3 \
+        --enable-glx --disable-dri --enable-dri2 --disable-dri3 \
         --disable-unit-tests \
         --disable-config-hal \
         --disable-config-udev \
@@ -342,6 +373,57 @@ fi
 %{_datadir}/icons/hicolor/*/apps/*
 
 %changelog
+* Wed Aug 29 2018 Jan Grulich <jgrulich@redhat.com> - 1.8.0-13
+- Add one remaining option to Xvnc manpage
+  Resolves: bz#1601880
+  
+* Wed Aug 29 2018 Jan Grulich <jgrulich@redhat.com> - 1.8.0-12
+- Add missing options to Xvnc manpage
+  Resolves: bz#1601880
+
+* Fri Aug 17 2018 Jan Grulich <jgrulich@redhat.com> - 1.8.0-11
+- Properly kill session after user logs out
+  Resolves: bz#1259757
+
+* Fri Aug 17 2018 Jan Grulich <jgrulich@redhat.com> - 1.8.0-10
+- Check endianness when constructing platform pixel buffer
+  Resolves: bz#1613264
+
+* Mon Jul 23 2018 Jan Grulich <jgrulich@redhat.com> - 1.8.0-9
+- Use current server time for XUngrabPointer and XUngrabKeyboard
+  Resolves: bz#1605325
+
+* Thu Jul 19 2018 Jan Grulich <jgrulich@redhat.com> - 1.8.0-8
+- Ignore fake focus events from XGrabKeyboard()
+  Resolves: bz#1602855
+
+* Wed Jun 27 2018 Jan Grulich <jgrulich@redhat.com> - 1.8.0-7
+  Properly support Xorg 1.20
+  Resolves: bz#1564061
+
+* Tue May 29 2018 Jan Grulich <jgrulich@redhat.com> - 1.8.0-6
+- Kill session after user logs out
+  Resolves: bz#1259757
+
+  Build against Xorg 1.20
+  Resolves: bz#1564061
+
+* Thu Jan 18 2018 Jan Grulich <jgrulich@redhat.com> - 1.8.0-5
+- Fix broken scrolling
+  Resolves: bz#1499018
+
+* Fri Oct 27 2017 Jan Grulich <jgrulich@redhat.com> - 1.8.0-4
+- Properly initialize tigervnc when started as systemd service
+  Resolves: bz#1506273
+
+* Tue Sep 19 2017 Jan Grulich <jgrulich@redhat.com> - 1.8.0-3
+- Make TLS work on FIPS systems
+  Resolves: bz#1492107
+
+* Tue Sep 12 2017 Jan Grulich <jgrulich@redhat.com> - 1.8.0-2
+- Let user know that view-only password will not be used
+  Resolves: bz#1447555
+
 * Wed May 17 2017 Jan Grulich <jgrulich@redhat.com> - 1.8.0-1
 - Update to 1.8.0
   Resolves: bz#1388620

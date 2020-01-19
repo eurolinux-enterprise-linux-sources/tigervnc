@@ -1,0 +1,21 @@
+From 86cec815e444842411f82c12b2c039ec455f2179 Mon Sep 17 00:00:00 2001
+From: Jan Grulich <jgrulich@redhat.com>
+Date: Wed, 8 Aug 2018 15:29:23 +0200
+Subject: Check endianness when constructing PlatformPixelBuffer()
+
+
+diff --git a/vncviewer/PlatformPixelBuffer.cxx b/vncviewer/PlatformPixelBuffer.cxx
+index a2b506df..b5c94d57 100644
+--- a/vncviewer/PlatformPixelBuffer.cxx
++++ b/vncviewer/PlatformPixelBuffer.cxx
+@@ -34,8 +34,8 @@
+ static rfb::LogWriter vlog("PlatformPixelBuffer");
+ 
+ PlatformPixelBuffer::PlatformPixelBuffer(int width, int height) :
+-  FullFramePixelBuffer(rfb::PixelFormat(32, 24, false, true,
+-                                       255, 255, 255, 16, 8, 0),
++  FullFramePixelBuffer(rfb::PixelFormat(32, 24, ImageByteOrder(fl_display) == MSBFirst,
++                                        true, 255, 255, 255, 16, 8, 0),
+                        width, height, 0, stride),
+   Surface(width, height)
+ #if !defined(WIN32) && !defined(__APPLE__)
